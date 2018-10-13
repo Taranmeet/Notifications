@@ -7,11 +7,18 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -28,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void initViews() {
         findViewById(R.id.b_local).setOnClickListener(this);
+        findViewById(R.id.b_fcm).setOnClickListener(this);
     }
 
     @Override
@@ -35,6 +43,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.b_local:
                 sendLocalNotification();
+                break;
+            case R.id.b_fcm:
+                generateFCMToken();
                 break;
         }
     }
@@ -67,6 +78,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (notificationManager != null)
                 notificationManager.createNotificationChannel(channel);
         }
+    }
+
+    private void generateFCMToken(){
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful()) {
+                            Log.e("TAG", "getInstanceId failed", task.getException());
+                            return;
+                        }
+
+                        // Get new Instance ID token
+                        String token = task.getResult().getToken();
+
+                        // Log and toast
+//                        String msg = getString(R.string.msg_token_fmt, token);
+                        Log.e("TAG", token);
+                        Toast.makeText(MainActivity.this, "token", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
 
